@@ -114,8 +114,7 @@ void BTreeIndex::SaveFile(const char *filename, vector<BTreeNode> bTree, int m){
 
     outFile.close();
 }
-int BTreeIndex::Split(int i, vector<BTreeNode> bTree)
-{
+int BTreeIndex::Split(int i, vector<BTreeNode> bTree){
      int newRecordNumber = head - 1; // The new node will be created at the head - 1 index //subtract -1 because the index starts from 0  
     if (i == 0){        //if the index of the node that I want to split is RootNode then call SplitRoot
         return SplitRoot(bTree);
@@ -154,8 +153,7 @@ int BTreeIndex::Split(int i, vector<BTreeNode> bTree)
     return newRecordNumber;
    
 }
-bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree)
-{
+bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree){
     int firstNodeIdx= head; /*The index of the first child node will take the first empty node. This is taken from the head, which tracks the next free node. */ 
     int secondNodeIdx = bTree[firstNodeIdx-1].node[0].first; // The index of the second child node will take the second empty node.
     if (firstNodeIdx == -1) {
@@ -190,15 +188,17 @@ bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree)
     for (int i = root.size(); i < m; ++i) {
     root.push_back(make_pair(-1, -1)); // Fill remaining slots with empty pairs (-1, -1).
      }
+    //If both child nodes have indices greater than thresholds (indicating children exist)
     //mark the  2 node as non leaf node if it has children
     if (firstNodeIdx > 2 && secondNodeIdx > 3) {
     bTree[firstNodeIdx - 1].isLeaf = 1;
     bTree[secondNodeIdx - 1].isLeaf = 1;
      }
 
-     bTree[0].node = root; // Update the root node in the tree.
+    bTree[0].node = root; // Update the root node in the tree.
     bTree[0].isLeaf = 1;  // Mark the root as an internal node.
-    bTree[0].count = 2;   // Set the number of keys in the root to 2.
+    bTree[0].count = 2;   // Set the number of keys in the root to 2 
+    //The largest key from firstNode. //The largest key from secondNode.
     SaveFile(BTreeFileName, bTree, m);
     return true;
 }
