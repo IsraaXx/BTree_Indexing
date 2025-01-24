@@ -31,6 +31,13 @@ public:
     void DisplayIndexFileContent(const char *filename);
     vector<BTreeNode> ReadFile(const char *filename);
     void SaveFile(const char *filename, vector<BTreeNode> bTree, int m);
+
+/////////////////////////////Functions used in insert////////////////////////////////////////////
+    int Split(int i,vector<BTreeNode> bTree);
+    bool SplitRoot(vector<BTreeNode> bTree);
+    pair<vector<pair<int, int>>, vector<pair<int, int>>> SplitNode(const vector<pair<int, int>>& originalNode);
+    //int updateAfterInsert(int parentRecordNumber, int newChildRecordNumber);
+
 };
 
 #endif // BTREEINDEX_BTREEINDEX_H
