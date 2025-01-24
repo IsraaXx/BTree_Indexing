@@ -4,11 +4,11 @@ using namespace std;
 
 void BTreeIndex::CreateIndexFile(const char *filename, int numberOfRecords, int m){
     BTreeFile.open(BTreeFileName, ios::in | ios::out | ios::binary);
-    if (BTreeFile.is_open()) {
-        cout << "Index file created successfully.\n";
-    } else {
-        cerr << "Failed to create or open the file.\n";
-    }
+    // if (BTreeFile.is_open()) {
+    //     cout << "Index file created successfully.\n";
+    // } else {
+    //     cerr << "Failed to create or open the file.\n";
+    // }
     this->numberOfRecords = numberOfRecords;
     this->m = m;  //Opens the file for writing in binary mode
     ofstream outfile(filename, ios::binary);
