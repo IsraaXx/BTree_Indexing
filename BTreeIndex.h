@@ -22,7 +22,7 @@ class BTreeIndex{
     const char *const BTreeFileName = "BTreeIndex.txt";
     int numberOfRecords;
     int m;
-    int head{};
+    int head{}; //The head is used to manage the linked list of empty nodes
     fstream BTreeFile;
 
 public:
