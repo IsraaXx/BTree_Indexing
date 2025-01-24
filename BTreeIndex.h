@@ -24,6 +24,8 @@ class BTreeIndex{
     int m;
     int head{}; //The head is used to manage the linked list of empty nodes
     fstream BTreeFile;
+    void DeleteCase2(const char *filename, vector<BTreeNode> &bTree, BTreeNode &find, int RecordID, int &count, int &temp);
+    void DeleteCase1(const char *filename, vector<BTreeNode> &bTree, BTreeNode &find, int RecordID);
 
 public:
     void CreateIndexFile(const char *filename, int numberOfRecords, int m);
