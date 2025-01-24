@@ -326,3 +326,159 @@ void BTreeIndex::DeleteCase1(const char *filename, vector<BTreeNode> &bTree, BTr
     bTree[(find.place - 1)].node = find.node;
     SaveFile(filename, bTree, m);
 }
+void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m)
+{
+    vector<BTreeNode> bTree;
+    bTree = ReadFile(filename);
+    int balance = m / 2;
+    int count = 0;
+    int temp;
+    BTreeNode find; 
+    for (auto &i : bTree)
+    {
+        if (i.isLeaf == 0)
+        {
+            for (int k = 0; k < i.node.size(); ++k)
+            {
+                if (i.node[k].first == RecordID)
+                {
+                    find = i;
+                    break;
+                }
+            }
+        }
+    }
+    if (find.place == 1)
+    { // if the node is the root
+        DeleteCase1(filename,bTree,find,RecordID);
+        bTree = ReadFile(filename);
+        if (bTree[0].count == 0){
+            bTree[0].node[0].first = 2;
+            head = 1;
+            bTree[0].isLeaf =  -1;
+        }
+        SaveFile(filename, bTree, m);
+        return;
+    }
+    for (auto &i : find.node)
+    { // get the node balance
+        if (i.first != -1)
+        {
+            count++;
+        }
+    }
+    if ((count - 1) >= balance)
+    {
+        if (find.node[count - 1].first == RecordID)
+        {
+            DeleteCase2(filename, bTree, find, RecordID, count, temp);
+        }
+        else
+        {
+            DeleteCase1(filename,bTree,find, RecordID);
+        }
+    }
+    else
+    {
+                                                ////////// case 3 or 4
+        BTreeNode parent;
+        BTreeNode siblings;
+        bool flag = 0;
+        for (size_t i = 0; i < bTree.size(); i++)
+        {
+            if (bTree[i].isLeaf == 1)
+            {
+                for (size_t j = 0; j < bTree[i].node.size(); j++)
+                {
+                    if (bTree[i].node[j].second == find.place)
+                    {
+                        parent = bTree[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (size_t i = 0; i < parent.children.size(); i++)
+        {
+            int ct = 0;
+            for (size_t j = 0; j < parent.children[i].node.size(); j++)
+            {
+                if (parent.children[i].node[j].first != -1)
+                {
+                    ct++;
+                }
+            }
+            parent.children[i].count = ct;
+        }
+
+        for (size_t i = 0; i < parent.children.size() ; i++)
+        {
+            if (parent.children[i].place == find.place){
+                break;
+            }
+            if ((parent.children[i].count > balance) && (parent.children[i +1].place == find.place))
+            {
+                siblings = parent.children[i];
+                flag = 1;
+                break;
+            }
+
+        }
+        if (flag)
+        {
+            // case 3
+            auto tmp = siblings.node[siblings.count - 1];/// the big one in the left
+            DeleteCase2(filename, bTree, siblings, siblings.node[siblings.count - 1].first, siblings.count, temp);
+            find.node[find.count] = tmp;
+            find.count++;
+            sort(find.node.begin(), find.node.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+            {
+                if (a.first != -1 && b.first != -1) {
+                    return a.first < b.first;
+                }
+                return a.first != -1; });
+            if(find.node[find.count -1].first == RecordID){
+                DeleteCase2(filename, bTree, find, RecordID, find.count, temp);
+            }else{
+                DeleteCase1(filename, bTree,find, RecordID);
+            }
+
+        }
+        else
+        {
+            if(find.node[find.count -1].first == RecordID){
+                DeleteCase2(filename, bTree, find, RecordID, find.count, temp);
+            }else{
+                DeleteCase1(filename, bTree,find, RecordID);
+            }
+            bTree = ReadFile(filename);
+            int headTree = head;
+            head = find.place;
+            pair<int, int> temp = make_pair(bTree[find.place -1].node[0].first,bTree[find.place -1].node[0].second);
+            for (int i = 0; i < parent.children.size(); ++i) {
+                if (parent.node[i].second == find.place){
+                    parent.node[i].second = -1;
+                    parent.node[i].first = -1;
+                    sort(parent.node.begin(), parent.node.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+                    {
+                        if (a.first != -1 && b.first != -1) {
+                            return a.first < b.first;
+                        }
+                        return a.first != -1; });
+                    break;
+                }
+            }
+            bTree[parent.place -1] = parent;
+            int pl = find.place;
+            find = bTree[pl -1];
+            find.isLeaf = -1;
+            find.node[0].first = headTree;
+            find.node[0].second = -1;
+            bTree[pl -1] = find;
+            SaveFile(filename, bTree,m);
+            InsertNewRecordAtIndex(temp.first, temp.second);
+
+        }
+    }
+}
