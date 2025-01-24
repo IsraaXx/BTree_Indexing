@@ -126,16 +126,17 @@ int BTreeIndex::Split(int i, vector<BTreeNode> bTree)
 
     head = bTree[head -1].node[0].first; // Update the head to the next free node. 
     vector<pair<int, int>> firstNode, secondNode;
+    //The tie function is used to unpack the two vectors returned
     tie(firstNode, secondNode) = SplitNode(bTree[i].node); 
     int size = firstNode.size();
     int size2 = secondNode.size();
 
     bTree[i].isLeaf = 0; 
     bTree[i].count = size;
-    for (int j = size; j < m; ++j) {
+    for (int j = size; j < m; ++j) { //the remaining entries are filled with (-1, -1)
         firstNode.push_back(make_pair(-1,-1));
     }
-    for (int j = 0; j < m; ++j) {
+    for (int j = 0; j < m; ++j) { //Copy Data Back to the Node
         bTree[i].node[j] = firstNode[j]; // Update the node with the first half of the keys.
     }
     //The last key belongs to the right half (secondNode), not to the left half. Since it has already been moved to the new node,
@@ -143,7 +144,7 @@ int BTreeIndex::Split(int i, vector<BTreeNode> bTree)
     bTree[i].node.pop_back();  
     bTree[newRecordNumber].isLeaf = 0;
     bTree[newRecordNumber].count = size2;
-    for (int j = size; j < m; ++j) {
+    for (int j = size; j < m; ++j) { //the remaining entries are filled with (-1, -1)
         secondNode.push_back(make_pair(-1,-1));
     }
     for (int j = 0; j < m; ++j) {
@@ -206,9 +207,9 @@ pair<vector<pair<int, int>>, vector<pair<int, int>>> BTreeIndex::SplitNode(const
     vector<pair<int, int>> firstNode, secondNode;
 
     auto middle = originalNode.begin() + originalNode.size() / 2;//The middle pointer is used to divide the node into two halves:
-
+        //Iterates through all elements
     for (auto it = originalNode.begin(); it != originalNode.end(); ++it) {
-        if (distance(it, middle) > 0) { // calc the iterator comparing to the middle if it's greater than 0 then it's in the first half
+        if (distance(it, middle) > 0) { // calc the iterator comparing to the middle if it's greater than 0 then it's in the first half // how far (it) is from middle
             firstNode.push_back(*it); // Add the key-value pair to firstNode
         } else {
             secondNode.push_back(*it);// Add the key-value pair to secondNode
