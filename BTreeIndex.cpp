@@ -109,6 +109,68 @@ void BTreeIndex::SaveFile(const char *filename, vector<BTreeNode> bTree, int m){
 
     outFile.close();
 }
+
+int BTreeIndex::InsertNewRecordAtIndex(int RecordID, int Reference){
+    vector<BTreeNode> bTree = ReadFile(BTreeFileName);//Reads the B-tree from the file into memory
+    if (bTree[0].count == 0){ //Handles the case where the tree is empty
+        head = bTree[0].node[0].first; //makes the head with the next empty place
+        bTree[0].node[0].first = RecordID; //Sets the first record in the root node
+        bTree[0].node[0].second = Reference;
+        bTree[0].isLeaf = 0;  //make it leaf node as it the first node in the tree
+        bTree[0].count++; // count this key
+        SaveFile(BTreeFileName, bTree,m); //Saves the updated B-tree and exits.
+        return 1;                         //insertion was successful
+    }
+    stack<int> visited; //to track visited nodes during traversal, starting from the root
+    int i = 0;
+    bool found = false;       // traverse as long as you have internal nodes
+    while (bTree[i].isLeaf){  //to find the appropriate node (i) to insert the new record
+        visited.push(i);     //Pushes visited internal nodes onto the stack
+        found = false;       //This allows us to backtrack and update parent nodes later if needed
+        for (int j = 0; j < bTree[i].node.size(); ++j) {
+            if (bTree[i].node[j].first >= RecordID){ //If RecordID is less than or equal to a key, moves to the corresponding child node
+                i = bTree[i].node[j].second - 1;     // update index with the child node
+                found = true;
+                break;
+            }
+        }
+        // means each key we found was smaller than the key we want to insert
+        // so its position will be the reference of the last node
+        if (!found){ // to get the last pair , Updates [i] to the index of the last child
+            i = bTree[i].node[bTree[i].count -1].second -1;
+        }
+    }
+    // we found the appropriate node to insert at
+    bTree[i].node.push_back(make_pair(RecordID,Reference));
+    //nodes are sorted based on the RecordID
+    sort(bTree[i].node.begin(), bTree[i].node.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+        if (a.first != -1 && b.first != -1) { //custom comparator to sort pairs based on RecordID
+            return a.first < b.first;
+        }
+        return a.first != -1;
+    });
+
+    bTree[i].count++;           //reflect the addition of a new record
+    int newFromSplitIndex = -1; //Checks if the node exceeds the maximum allowed number of entries (m)
+    if (bTree[i].count > m){    //If so, the node is split, and SplitNode
+        newFromSplitIndex = Split(i, bTree);
+    }else{
+        bTree[i].node.pop_back();
+        SaveFile(BTreeFileName, bTree, m);
+    }
+    if(i == 0){
+        return 1;
+    }
+    //After the insertion, the path from the root to the inserted leaf node is traversed
+    // in reverse order (using the visited stack), and any necessary updates are made to the parent nodes
+    while (!visited.empty()) {
+        int lastVisitedIndex = visited.top();
+        visited.pop();
+        newFromSplitIndex = updateAfterInsert(lastVisitedIndex, newFromSplitIndex);
+    }
+    return -1;
+}
+
 int BTreeIndex::Split(int i, vector<BTreeNode> bTree){
      int newRecordNumber = head - 1; // The new node will be created at the head - 1 index //subtract -1 because the index starts from 0  
     if (i == 0){        //if the index of the node that I want to split is RootNode then call SplitRoot
