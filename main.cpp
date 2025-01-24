@@ -23,7 +23,7 @@ int main(){
                 case 1: {
                     cout << "Enter RecordID and Reference: ";
                     cin >> recordID >> reference;
-                 //   bTreeIndex.InsertNewRecordAtIndex(recordID, reference);
+                    bTreeIndex.InsertNewRecordAtIndex(recordID, reference);
                    // int referenceValue = bTreeIndex.SearchARecord("BTreeIndex.txt", recordID);
 //                    if(referenceValue == -1){
 //                        bTreeIndex.InsertNewRecordAtIndex( recordID, reference);}
