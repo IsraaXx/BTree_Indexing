@@ -33,6 +33,7 @@ public:
     void DisplayIndexFileContent(const char *filename);
     vector<BTreeNode> ReadFile(const char *filename);
     void SaveFile(const char *filename, vector<BTreeNode> bTree, int m);
+    void DeleteRecordFromIndex(const char *filename, int RecordID, int m);
 
 /////////////////////////////Functions used in insert////////////////////////////////////////////
     int Split(int i,vector<BTreeNode> bTree);
