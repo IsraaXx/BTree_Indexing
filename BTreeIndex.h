@@ -11,7 +11,7 @@ using namespace std;
 
 struct BTreeNode{
 public:
-    int isLeaf;
+    int nodeType;
     int count = 0;
     int place;
     vector<pair<int, int>> node;
