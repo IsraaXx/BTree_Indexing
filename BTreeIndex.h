@@ -27,7 +27,7 @@ class BTreeIndex{
 
 public:
     void CreateIndexFile(const char *filename, int numberOfRecords, int m);
-    //int InsertNewRecordAtIndex(int RecordID, int Reference);
+    int InsertNewRecordAtIndex(int RecordID, int Reference);
     void DisplayIndexFileContent(const char *filename);
     vector<BTreeNode> ReadFile(const char *filename);
     void SaveFile(const char *filename, vector<BTreeNode> bTree, int m);
