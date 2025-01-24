@@ -30,7 +30,7 @@ void BTreeIndex::DisplayIndexFileContent(const char *filename){
     cout << "<-----------------------Header Row------------------------>\n ";
     cout << "First Empty Place: " << head << "\n";
     for (int i = 0; i < Tree.size(); ++i){
-        cout << " Place: " << Tree[i].place << " | HasLeaf: " << Tree[i].isLeaf << " | Node: ";
+        cout << " Place: " << Tree[i].place << " | nodeType: " << Tree[i].nodeType << " | Node: ";
         for (const auto &pair : Tree[i].node){
             cout << "(" << pair.first << ", " << pair.second << ") ";
         }
@@ -49,7 +49,7 @@ vector<BTreeNode> BTreeIndex::ReadFile(const char *filename){
     { // start from second line which is the root , first in data
         istringstream iss(line);
         BTreeNode Node;
-        iss >> Node.isLeaf;
+        iss >> Node.nodeType;
         Node.place = i;
         int key, value;
         while ((iss >> key >> value)){
@@ -76,7 +76,7 @@ vector<BTreeNode> BTreeIndex::ReadFile(const char *filename){
     }
     //Add children nodes to non leaf node
     for (int j = (Btree.size() - 1); j >= 0; --j){
-        if (Btree[j].isLeaf == 1){//internal node has children
+        if (Btree[j].nodeType == 1){//internal node has children
             for (int k = 0; k < Btree[j].node.size(); ++k){
                 if (Btree[j].node[k].second != -1){//means this key-value pair points to a valid child node
                     Btree[j].children.push_back(Btree[Btree[j].node[k].second - 1]);
@@ -98,7 +98,7 @@ void BTreeIndex::SaveFile(const char *filename, vector<BTreeNode> bTree, int m){
     outFile << "\n";
     for (const auto &node : bTree){
         // write first val which is type og node
-        outFile << node.isLeaf << "  ";
+        outFile << node.nodeType << "  ";
 
         for (const auto &pair : node.node){
             outFile << pair.first << "  ";
@@ -116,7 +116,7 @@ int BTreeIndex::InsertNewRecordAtIndex(int RecordID, int Reference){
         head = bTree[0].node[0].first; //makes the head with the next empty place
         bTree[0].node[0].first = RecordID; //Sets the first record in the root node
         bTree[0].node[0].second = Reference;
-        bTree[0].isLeaf = 0;  //make it leaf node as it the first node in the tree
+        bTree[0].nodeType = 0;  //make it leaf node as it the first node in the tree
         bTree[0].count++; // count this key
         SaveFile(BTreeFileName, bTree,m); //Saves the updated B-tree and exits.
         return 1;                         //insertion was successful
@@ -124,7 +124,7 @@ int BTreeIndex::InsertNewRecordAtIndex(int RecordID, int Reference){
     stack<int> visited; //to track visited nodes during traversal, starting from the root
     int i = 0;
     bool found = false;       // traverse as long as you have internal nodes
-    while (bTree[i].isLeaf){  //to find the appropriate node (i) to insert the new record
+    while (bTree[i].nodeType){  //to find the appropriate node (i) to insert the new record
         visited.push(i);     //Pushes visited internal nodes onto the stack
         found = false;       //This allows us to backtrack and update parent nodes later if needed
         for (int j = 0; j < bTree[i].node.size(); ++j) {
@@ -172,22 +172,22 @@ int BTreeIndex::InsertNewRecordAtIndex(int RecordID, int Reference){
 }
 
 int BTreeIndex::Split(int i, vector<BTreeNode> bTree){
-     int newRecordNumber = head - 1; // The new node will be created at the head - 1 index //subtract -1 because the index starts from 0  
+    int newRecordNumber = head - 1; // The new node will be created at the head - 1 index //subtract -1 because the index starts from 0
     if (i == 0){        //if the index of the node that I want to split is RootNode then call SplitRoot
         return SplitRoot(bTree);
     }
     if (head == -1) {
-    return -1; // No free nodes available, split cannot proceed.
+        return -1; // No free nodes available, split cannot proceed.
     }
 
-    head = bTree[head -1].node[0].first; // Update the head to the next free node. 
+    head = bTree[head -1].node[0].first; // Update the head to the next free node.
     vector<pair<int, int>> firstNode, secondNode;
     //The tie function is used to unpack the two vectors returned
-    tie(firstNode, secondNode) = SplitNode(bTree[i].node); 
+    tie(firstNode, secondNode) = SplitNode(bTree[i].node);
     int size = firstNode.size();
     int size2 = secondNode.size();
 
-    bTree[i].isLeaf = 0; 
+    bTree[i].nodeType = 0;
     bTree[i].count = size;
     for (int j = size; j < m; ++j) { //the remaining entries are filled with (-1, -1)
         firstNode.push_back(make_pair(-1,-1));
@@ -197,8 +197,8 @@ int BTreeIndex::Split(int i, vector<BTreeNode> bTree){
     }
     //The last key belongs to the right half (secondNode), not to the left half. Since it has already been moved to the new node,
     // it should be removed from bTree[i].node.
-    bTree[i].node.pop_back();  
-    bTree[newRecordNumber].isLeaf = 0;
+    bTree[i].node.pop_back();
+    bTree[newRecordNumber].nodeType = 0;
     bTree[newRecordNumber].count = size2;
     for (int j = size; j < m; ++j) { //the remaining entries are filled with (-1, -1)
         secondNode.push_back(make_pair(-1,-1));
@@ -208,10 +208,10 @@ int BTreeIndex::Split(int i, vector<BTreeNode> bTree){
     }
     SaveFile(BTreeFileName, bTree,m);
     return newRecordNumber;
-   
+
 }
 bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree){
-    int firstNodeIdx= head; /*The index of the first child node will take the first empty node. This is taken from the head, which tracks the next free node. */ 
+    int firstNodeIdx= head; /*The index of the first child node will take the first empty node. This is taken from the head, which tracks the next free node. */
     int secondNodeIdx = bTree[firstNodeIdx-1].node[0].first; // The index of the second child node will take the second empty node.
     if (firstNodeIdx == -1) {
         return false;
@@ -219,19 +219,19 @@ bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree){
     if (secondNodeIdx == -1) {
         return false;
     }
-   head = bTree[head].node[0].first; //update the head to the next free node
-   vector<pair<int, int>> firstNode, secondNode, root;
-   tie(firstNode, secondNode) = SplitNode(bTree[0].node);
+    head = bTree[head].node[0].first; //update the head to the next free node
+    vector<pair<int, int>> firstNode, secondNode, root;
+    tie(firstNode, secondNode) = SplitNode(bTree[0].node);
 
-   int size = firstNode.size();
-    bTree[firstNodeIdx- 1].isLeaf = 0;
+    int size = firstNode.size();
+    bTree[firstNodeIdx- 1].nodeType = 0;
     bTree[firstNodeIdx - 1].count = size;
     for (int i = 0; i < size; ++i) {
         bTree[firstNodeIdx - 1].node[i] = firstNode[i];
     }
 
     int size2 = secondNode.size();
-    bTree[secondNodeIdx - 1].isLeaf = 0;
+    bTree[secondNodeIdx - 1].nodeType = 0;
     bTree[secondNodeIdx - 1].count = size2;
     for (int i = 0; i < size2; ++i) {
         bTree[secondNodeIdx - 1].node[i] = secondNode[i];
@@ -243,18 +243,18 @@ bool BTreeIndex::SplitRoot(vector<BTreeNode> bTree){
     root[1].second = secondNodeIdx;      // Set the pointer to the second child node.
 
     for (int i = root.size(); i < m; ++i) {
-    root.push_back(make_pair(-1, -1)); // Fill remaining slots with empty pairs (-1, -1).
-     }
+        root.push_back(make_pair(-1, -1)); // Fill remaining slots with empty pairs (-1, -1).
+    }
     //If both child nodes have indices greater than thresholds (indicating children exist)
     //mark the  2 node as non leaf node if it has children
     if (firstNodeIdx > 2 && secondNodeIdx > 3) {
-    bTree[firstNodeIdx - 1].isLeaf = 1;
-    bTree[secondNodeIdx - 1].isLeaf = 1;
-     }
+        bTree[firstNodeIdx - 1].nodeType = 1;
+        bTree[secondNodeIdx - 1].nodeType = 1;
+    }
 
     bTree[0].node = root; // Update the root node in the tree.
-    bTree[0].isLeaf = 1;  // Mark the root as an internal node.
-    bTree[0].count = 2;   // Set the number of keys in the root to 2 
+    bTree[0].nodeType = 1;  // Mark the root as an internal node.
+    bTree[0].count = 2;   // Set the number of keys in the root to 2
     //The largest key from firstNode. //The largest key from secondNode.
     SaveFile(BTreeFileName, bTree, m);
     return true;
@@ -264,7 +264,7 @@ pair<vector<pair<int, int>>, vector<pair<int, int>>> BTreeIndex::SplitNode(const
     vector<pair<int, int>> firstNode, secondNode;
 
     auto middle = originalNode.begin() + originalNode.size() / 2;//The middle pointer is used to divide the node into two halves:
-        //Iterates through all elements
+    //Iterates through all elements
     for (auto it = originalNode.begin(); it != originalNode.end(); ++it) {
         if (distance(it, middle) > 0) { // calc the iterator comparing to the middle if it's greater than 0 then it's in the first half // how far (it) is from middle
             firstNode.push_back(*it); // Add the key-value pair to firstNode
@@ -333,10 +333,10 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
     int balance = m / 2;
     int count = 0;
     int temp;
-    BTreeNode find; 
+    BTreeNode find;
     for (auto &i : bTree)
     {
-        if (i.isLeaf == 0)
+        if (i.nodeType == 0)
         {
             for (int k = 0; k < i.node.size(); ++k)
             {
@@ -355,7 +355,7 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
         if (bTree[0].count == 0){
             bTree[0].node[0].first = 2;
             head = 1;
-            bTree[0].isLeaf =  -1;
+            bTree[0].nodeType =  -1;
         }
         SaveFile(filename, bTree, m);
         return;
@@ -380,13 +380,13 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
     }
     else
     {
-                                                ////////// case 3 or 4
+        ////////// case 3 or 4
         BTreeNode parent;
         BTreeNode siblings;
         bool flag = 0;
         for (size_t i = 0; i < bTree.size(); i++)
         {
-            if (bTree[i].isLeaf == 1)
+            if (bTree[i].nodeType == 1)
             {
                 for (size_t j = 0; j < bTree[i].node.size(); j++)
                 {
@@ -472,7 +472,7 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
             bTree[parent.place -1] = parent;
             int pl = find.place;
             find = bTree[pl -1];
-            find.isLeaf = -1;
+            find.nodeType = -1;
             find.node[0].first = headTree;
             find.node[0].second = -1;
             bTree[pl -1] = find;
@@ -482,3 +482,4 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
         }
     }
 }
+
