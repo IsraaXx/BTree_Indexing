@@ -35,7 +35,7 @@ int main(){
                  case 2:{
                     cout << "Enter RecordID: ";
                     cin >> recordID ;
-                    bTreeIndex.DeleteRecordFromIndex("BTreeIndex.txt",recordID,5);
+                    bTreeIndex.DeleteRecordFromIndex("BTreeIndex.txt",recordID,m);
                     break;
                 }
 
