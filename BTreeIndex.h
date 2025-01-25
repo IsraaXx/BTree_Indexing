@@ -35,12 +35,20 @@ public:
     vector<BTreeNode> ReadFile(const char *filename);
     void SaveFile(const char *filename, vector<BTreeNode> bTree, int m);
     void DeleteRecordFromIndex(const char *filename, int RecordID, int m);
+    int SearchARecord(const char *filename, int RecordID);
+    bool record_valid(int recordNumber) const;
+    int read_val(int rowIndex, int columnIndex);
+    bool isEmpty(int recordNumber);
+    bool isLeaf(int recordNumber);
+    vector<pair<int, int>> read_node_values(int recordNumber);
+
 
 /////////////////////////////Functions used in insert////////////////////////////////////////////
     int Split(int i,vector<BTreeNode> bTree);
     bool SplitRoot(vector<BTreeNode> bTree);
     pair<vector<pair<int, int>>, vector<pair<int, int>>> SplitNode(const vector<pair<int, int>>& originalNode);
     int UpdateAfterInsert(int parentRecordNumber, int newChildRecordNumber);
+
 
 };
 
