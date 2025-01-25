@@ -575,7 +575,7 @@ int BTreeIndex::SearchARecord(const char *filename, int RecordID)
 {
     if (isEmpty(1))
         return -1;
-    std::vector<std::pair<int, int>> current;
+    vector<pair<int, int>> current;
 
     int i = 1;
     bool found;
