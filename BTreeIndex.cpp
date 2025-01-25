@@ -275,6 +275,42 @@ pair<vector<pair<int, int>>, vector<pair<int, int>>> BTreeIndex::SplitNode(const
 
     return make_pair(firstNode, secondNode);
 }
+
+int BTreeIndex::UpdateAfterInsert(int parentRecordNumber, int newChildRecordNumber){
+    //The index of a newly created child node (e.g., after a split). If no split occurred, this will be -1.
+    vector<pair<int,int>> newParent;             //A vector that will store updated child pointers (keys and corresponding child indices) for the parent node.
+    vector<BTreeNode> bTree = ReadFile(BTreeFileName);
+    for (int i = 0; i < bTree[parentRecordNumber].children.size(); ++i) {     //This loop iterates through all the current children of the parent node
+        newParent.push_back(make_pair(bTree[parentRecordNumber].children[i].node[bTree[parentRecordNumber].children[i].count -1].first, bTree[parentRecordNumber].children[i].place));
+        
+        //Gets the last key in the child node. This is used as the key for the parent node to reference this child.
+        //and Store the index of this child node , Adds this pair to the vector
+    }
+    if (newChildRecordNumber != -1){          //If a new child was created (split occurs)
+        newParent.push_back(make_pair(bTree[newChildRecordNumber].node[bTree[newChildRecordNumber].count -1].first,newChildRecordNumber +1));
+         //Gets the last key of the new child,and stores the index of the new child node.
+    }
+    sort(newParent.begin(), newParent.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+        if (a.first != -1 && b.first != -1) {    //Sorts the newParent vector by the keys (first)
+            return a.first < b.first;            // Prioritize valid entries (not -1)
+        }
+        return a.first != -1;                //returning true for the pair with first !=-1
+    });
+    int size = newParent.size();            //Updates the count of the parent node
+    bTree[parentRecordNumber].count = size;
+
+    for (int i = newParent.size(); i < m; ++i) {   //fills the remaining slots with (-1, -1) pairs to indicate empty spaces
+        newParent.push_back(make_pair(-1,-1));
+    }
+    bTree[parentRecordNumber].node = newParent;    //Update parent's node vector with the new sorted list
+    int newFromSplitIndex = -1;
+    if (size > m) {                                 //if parent now has more entries than allowed
+        newFromSplitIndex = Split(parentRecordNumber, bTree);    //the parent itself is split
+    } else {
+        SaveFile(BTreeFileName, bTree, m);     //If no split is needed, the updated B-tree is saved to the file
+    }
+    return newFromSplitIndex;
+}
 void BTreeIndex::DeleteCase2(const char *filename, vector<BTreeNode> &bTree, BTreeNode &find, int RecordID, int &count, int &temp)
 {
     for (int i = 0; i < find.node.size(); ++i)
@@ -483,41 +519,7 @@ void BTreeIndex::DeleteRecordFromIndex(const char *filename, int RecordID, int m
     }
 }
 
-int BTreeIndex::UpdateAfterInsert(int parentRecordNumber, int newChildRecordNumber){
-    //The index of a newly created child node (e.g., after a split). If no split occurred, this will be -1.
-    vector<pair<int,int>> newParent;             //A vector that will store updated child pointers (keys and corresponding child indices) for the parent node.
-    vector<BTreeNode> bTree = ReadFile(BTreeFileName);
-    for (int i = 0; i < bTree[parentRecordNumber].children.size(); ++i) {     //This loop iterates through all the current children of the parent node
-        newParent.push_back(make_pair(bTree[parentRecordNumber].children[i].node[bTree[parentRecordNumber].children[i].count -1].first, bTree[parentRecordNumber].children[i].place));
-        
-        //Gets the last key in the child node. This is used as the key for the parent node to reference this child.
-        //and Store the index of this child node , Adds this pair to the vector
-    }
-    if (newChildRecordNumber != -1){          //If a new child was created (split occurs)
-        newParent.push_back(make_pair(bTree[newChildRecordNumber].node[bTree[newChildRecordNumber].count -1].first,newChildRecordNumber +1));
-         //Gets the last key of the new child,and stores the index of the new child node.
-    }
-    sort(newParent.begin(), newParent.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
-        if (a.first != -1 && b.first != -1) {    //Sorts the newParent vector by the keys (first)
-            return a.first < b.first;            // Prioritize valid entries (not -1)
-        }
-        return a.first != -1;                //returning true for the pair with first !=-1
-    });
-    int size = newParent.size();            //Updates the count of the parent node
-    bTree[parentRecordNumber].count = size;
 
-    for (int i = newParent.size(); i < m; ++i) {   //fills the remaining slots with (-1, -1) pairs to indicate empty spaces
-        newParent.push_back(make_pair(-1,-1));
-    }
-    bTree[parentRecordNumber].node = newParent;    //Update parent's node vector with the new sorted list
-    int newFromSplitIndex = -1;
-    if (size > m) {                                 //if parent now has more entries than allowed
-        newFromSplitIndex = Split(parentRecordNumber, bTree);    //the parent itself is split
-    } else {
-        SaveFile(BTreeFileName, bTree, m);     //If no split is needed, the updated B-tree is saved to the file
-    }
-    return newFromSplitIndex;
-}
 bool BTreeIndex::isEmpty(int recordNumber)
 {
     return read_val(recordNumber, 0) == -1;
