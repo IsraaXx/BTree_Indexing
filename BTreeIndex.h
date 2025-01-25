@@ -39,7 +39,7 @@ public:
     int Split(int i,vector<BTreeNode> bTree);
     bool SplitRoot(vector<BTreeNode> bTree);
     pair<vector<pair<int, int>>, vector<pair<int, int>>> SplitNode(const vector<pair<int, int>>& originalNode);
-    //int updateAfterInsert(int parentRecordNumber, int newChildRecordNumber);
+    int UpdateAfterInsert(int parentRecordNumber, int newChildRecordNumber);
 
 };
 
