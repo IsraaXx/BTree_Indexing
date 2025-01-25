@@ -32,7 +32,12 @@ int main(){
 //                    }
                     break;
                 }
-
+                 case 2:{
+                    cout << "Enter RecordID and Reference: ";
+                    cin >> recordID >> reference;
+                    bTreeIndex.DeleteRecordFromIndex("BTreeIndex.txt",recordID,5);
+                    break;
+                }
 
                 case 3: {
                     bTreeIndex.DisplayIndexFileContent("BTreeIndex.txt");
