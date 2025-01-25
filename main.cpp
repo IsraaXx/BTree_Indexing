@@ -23,13 +23,13 @@ int main(){
                 case 1: {
                     cout << "Enter RecordID and Reference: ";
                     cin >> recordID >> reference;
-                    bTreeIndex.InsertNewRecordAtIndex(recordID, reference);
-                   // int referenceValue = bTreeIndex.SearchARecord("BTreeIndex.txt", recordID);
-//                    if(referenceValue == -1){
-//                        bTreeIndex.InsertNewRecordAtIndex( recordID, reference);}
-//                    else{
-//                        cout << "Error: Can't insert RecordID already exits." << "\n";
-//                    }
+                    
+                    int referenceValue = bTreeIndex.SearchARecord("BTreeIndex.txt", recordID);
+                    if(referenceValue == -1){
+                       bTreeIndex.InsertNewRecordAtIndex( recordID, reference);}
+                   else{
+                       cout << " You can't insert this RecordID already exists." << "\n";
+                   }
                     break;
                 }
                  case 2:{
