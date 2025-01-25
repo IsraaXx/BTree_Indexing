@@ -43,6 +43,21 @@ int main(){
                     bTreeIndex.DisplayIndexFileContent("BTreeIndex.txt");
                     break;
                 }
+                case 4:
+                {
+                    cout << "Enter RecordID to search: ";
+                    cin >> recordID;
+                    int referenceValue = bTreeIndex.SearchARecord("BTreeIndex.txt", recordID);
+                    if (referenceValue == -1)
+                    {
+                        cout << "Record not found in the index." << endl;
+                    }
+                    else
+                    {
+                        cout << "Record found at reference: " << referenceValue << endl;
+                    }
+                    break;
+                }
                 case 5: {
                     cout << "Exiting program." << "\n";
                     break;
