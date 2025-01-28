@@ -3,7 +3,6 @@
 ## Overview
 This project implements a **B-tree indexing system** in C++ to efficiently manage and manipulate a set of fixed-length records stored in a binary file. The B-tree is used as a secondary index, supporting operations like record insertion, deletion, search, and displaying the structure of the index file. 
 
-The implementation is based on an assignment designed to reinforce concepts of data structures, file management, and algorithm design.
 
 ---
 
